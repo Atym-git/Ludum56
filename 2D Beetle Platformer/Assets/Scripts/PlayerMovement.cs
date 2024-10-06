@@ -18,7 +18,8 @@ public class PlayerMovement : MonoBehaviour
     float _currentJumpForceX = 1f;
     float _currentJumpForceY = 1f;
     [SerializeField] Animator _animator;
-
+    [SerializeField] public int prevCpIndex = 0;
+    [SerializeField] public float x, y;
 
     int _jumpingSide = 1;
 
