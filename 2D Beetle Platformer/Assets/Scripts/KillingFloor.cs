@@ -24,7 +24,7 @@ public class KillingFloor : MonoBehaviour
 
         }
 
-        //checkpoint.cpPosition = Vector2.zero;
+       
     }
 
 
