@@ -10,16 +10,17 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float _movementSpeed;
     [SerializeField] Rigidbody2D _rb;
     [SerializeField] SpriteRenderer _spriteRenderer;
-    [SerializeField] float _jumpForceX = 1f;
-    [SerializeField] float _jumpForceY = 1f;
+    [SerializeField] float _jumpForceX;
+    [SerializeField] float _jumpForceY;
     [SerializeField] float _fallGravityScale;
     [SerializeField] float _gravityScale;
+    [SerializeField] float _jumpChargeSpeed;
     float _currentJumpForceX = 1f;
     float _currentJumpForceY = 1f;
+    [SerializeField] Animator _animator;
 
 
-    bool _lookingleft = true;
-    int _j = 1;
+    int _jumpingSide = 1;
 
     bool _isJumping;
     float _jumpStartTime;
@@ -29,43 +30,48 @@ public class PlayerMovement : MonoBehaviour
 
 
 
-
-
     void Update()
     {
 
-        float movement = Input.GetAxis("Horizontal");
-        if (movement > 0)
+        if (_onGround && !Input.GetButton("Jump"))
         {
-            _spriteRenderer.flipX = true;
-            _lookingleft = true; 
-         }
-        else if (movement < 0)
-        {
-            _spriteRenderer.flipX = false;
-            _lookingleft = false;
-        }
-
-        transform.position += new Vector3(movement, 0, 0) * _movementSpeed * Time.deltaTime;
-
-        
-
-        if (Input.GetButtonUp("Jump") && Mathf.Abs(_rb.velocity.y) < 0.05f) 
-        {
-
-            if (_lookingleft)
+            float movement = Input.GetAxis("Horizontal");
+            if (movement > 0)
             {
-                _j = 1; 
+                _spriteRenderer.flipX = true;
+               
+                _animator.SetBool("Idle", false);
+                _animator.SetBool("Walking", true);
+            }
+            else if (movement < 0)
+            {
+                _spriteRenderer.flipX = false;
+               
+                _animator.SetBool("Idle", false);
+                _animator.SetBool("Walking", true);
             }
             else
             {
-                _j = -1;
-                
+                _animator.SetBool("Idle", true);
+                _animator.SetBool("Walking", false);
             }
 
-            _rb.AddForce(new Vector3(_j * _currentJumpForceX, _currentJumpForceY), ForceMode2D.Impulse);
+            transform.position += new Vector3(movement, 0, 0) * _movementSpeed * Time.deltaTime;
+        }
+        
+
+        if (Input.GetButtonUp("Jump") && Mathf.Abs(_rb.velocity.y) < 0.05f)
+        {
+            _animator.SetBool("JumpingRelease", true);
+            _animator.SetBool("MidAir", true);
+            _animator.SetBool("Idle", false);
+            _animator.SetBool("Jumping", false);
 
             _onGround = false;
+
+            _rb.AddForce(new Vector3(_jumpingSide * _currentJumpForceX, _currentJumpForceY), ForceMode2D.Impulse);
+            
+            
             
         }
             if (Input.GetButton("Jump") )
@@ -73,10 +79,23 @@ public class PlayerMovement : MonoBehaviour
 
             if (_onGround)
             {
-                    _isJumping = true;
+                _animator.SetBool("Walking", false);
+                _animator.SetBool("Jumping", true);
 
-                _currentJumpForceX += 0.01f;
-                _currentJumpForceY += 0.01f;
+                if (_spriteRenderer.flipX)
+                {
+                    _jumpingSide = 1;
+                }
+                else if (!_spriteRenderer.flipX)
+                {
+                    _jumpingSide = -1;
+
+                }
+
+                _isJumping = true;
+
+                _currentJumpForceX += _jumpChargeSpeed;
+                _currentJumpForceY += _jumpChargeSpeed;
 
                 if (_currentJumpForceX > _jumpForceX * 3)
                 {
@@ -90,8 +109,6 @@ public class PlayerMovement : MonoBehaviour
             }
 
             
-
-
         }
 
 
