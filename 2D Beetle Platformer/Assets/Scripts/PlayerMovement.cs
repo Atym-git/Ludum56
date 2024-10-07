@@ -10,39 +10,48 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float _movementSpeed;
     [SerializeField] Rigidbody2D _rb;
     [SerializeField] SpriteRenderer _spriteRenderer;
-    [SerializeField] float _jumpForceX;
-    [SerializeField] float _jumpForceY;
+    [SerializeField] public float jumpForceX;
+    [SerializeField] public float jumpForceY;
     [SerializeField] float _fallGravityScale;
     [SerializeField] float _gravityScale;
-    [SerializeField] float _jumpChargeSpeed;
-    float _currentJumpForceX = 1f;
-    float _currentJumpForceY = 1f;
+    [SerializeField] public float jumpChargeSpeed;
+    [SerializeField] public float currentJumpForceX = 1f;
+    [SerializeField] public float currentJumpForceY = 1f;
     [SerializeField] Animator _animator;
     [SerializeField] public int prevCpIndex = 0;
     [SerializeField] public float x, y;
+    [SerializeField] AudioSource _audioSourceWalk;
+    [SerializeField] AudioSource _audioSourceJump;
 
     int _jumpingSide = 1;
 
-    bool _isJumping;
+    public bool isJumping;
     float _jumpStartTime;
     private float _jumpTime;
-    bool _onGround;
-
+    public bool onGround;
 
 
 
     void Update()
     {
 
-        if (_onGround && !Input.GetButton("Jump"))
+        if (onGround && !Input.GetButton("Jump"))
         {
             float movement = Input.GetAxis("Horizontal");
             if (movement > 0)
             {
+ 
+                if (!_audioSourceWalk.isPlaying)
+                {
+                _audioSourceWalk.Play();
+
+                }
+
                 _spriteRenderer.flipX = true;
                
                 _animator.SetBool("Idle", false);
                 _animator.SetBool("Walking", true);
+
             }
             else if (movement < 0)
             {
@@ -50,9 +59,22 @@ public class PlayerMovement : MonoBehaviour
                
                 _animator.SetBool("Idle", false);
                 _animator.SetBool("Walking", true);
+
+                if (!_audioSourceWalk.isPlaying)
+                {    
+                _audioSourceWalk.Play();
+                    
+                }
+
             }
             else
             {
+                if (_audioSourceWalk.isPlaying)
+                {
+                    _audioSourceWalk.Stop();
+
+                }
+
                 _animator.SetBool("Idle", true);
                 _animator.SetBool("Walking", false);
             }
@@ -63,22 +85,24 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetButtonUp("Jump") && Mathf.Abs(_rb.velocity.y) < 0.05f)
         {
+
+
             _animator.SetBool("JumpingRelease", true);
             _animator.SetBool("MidAir", true);
             _animator.SetBool("Idle", false);
             _animator.SetBool("Jumping", false);
 
-            _onGround = false;
+            onGround = false;
+   
+            _audioSourceJump.Play();
+            _rb.AddForce(new Vector3(_jumpingSide * currentJumpForceX, currentJumpForceY), ForceMode2D.Impulse);
 
-            _rb.AddForce(new Vector3(_jumpingSide * _currentJumpForceX, _currentJumpForceY), ForceMode2D.Impulse);
-            
-            
-            
+
         }
             if (Input.GetButton("Jump") )
         {
 
-            if (_onGround)
+            if (onGround)
             {
                 _animator.SetBool("Walking", false);
                 _animator.SetBool("Jumping", true);
@@ -93,19 +117,19 @@ public class PlayerMovement : MonoBehaviour
 
                 }
 
-                _isJumping = true;
+                isJumping = true;
 
-                _currentJumpForceX += _jumpChargeSpeed;
-                _currentJumpForceY += _jumpChargeSpeed;
+                currentJumpForceX += jumpChargeSpeed;
+                currentJumpForceY += jumpChargeSpeed;
 
-                if (_currentJumpForceX > _jumpForceX * 3)
+                if (currentJumpForceX > jumpForceX * 3)
                 {
-                    _currentJumpForceX = _jumpForceX * 3;
+                    currentJumpForceX = jumpForceX * 3;
                 }
 
-                if (_currentJumpForceY > _jumpForceY * 3)
+                if (currentJumpForceY > jumpForceY * 3)
                 {
-                    _currentJumpForceY = _jumpForceY * 3;
+                    currentJumpForceY = jumpForceY * 3;
                 }
             }
 
@@ -122,14 +146,21 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             
-            _onGround = true;
-            _isJumping = false;
+            onGround = true;
+            isJumping = false;
 
-                _currentJumpForceX = _jumpForceX;
-                _currentJumpForceY = _jumpForceY;
+                currentJumpForceX = jumpForceX;
+                currentJumpForceY = jumpForceY;
             
         }
 
     }
+
+    IEnumerator Delay()
+    {
+        yield return new WaitForSeconds(1);
+
+    }
+
 
 }
